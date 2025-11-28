@@ -7,7 +7,8 @@ import {
   Search, Menu, X, Minus, Square, Power, LogOut, RefreshCw,
   Cpu, Wifi, Volume2, Battery, Calendar, Download, Trash2,
   Maximize2, Minimize2, Edit3, Type, Play, Pause, SkipForward, SkipBack,
-  Grid, List, Check, Music
+  Grid, List, Check, Music, MousePointer2, ExternalLink, Info, Image,
+  MoreVertical, ArrowLeft, ArrowRight, RotateCcw, Plus
 } from 'lucide-react';
 
 // --- Types & Constants ---
@@ -53,28 +54,33 @@ const BrowserApp: React.FC<{ windowId: string }> = () => {
     let target = inputUrl;
     if (!target.startsWith('http')) target = 'https://' + target;
     setUrl(target);
+    // Sync input in case of auto-correction
+    setInputUrl(target);
   };
 
   return (
     <div className="flex flex-col h-full bg-white">
       <div className="flex p-2 gap-2 bg-gray-100 border-b border-gray-300 items-center">
-        <button className="p-1.5 hover:bg-gray-200 rounded text-gray-600" onClick={() => { setUrl('https://www.google.com'); setInputUrl('https://www.google.com'); }}>
+        <button className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="主页" onClick={() => { setUrl('https://www.imikufans.com'); setInputUrl('https://www.imikufans.com'); }}>
           <Globe size={16}/>
         </button>
-        <button className="p-1.5 hover:bg-gray-200 rounded text-gray-600" onClick={() => iframeRef.current?.contentWindow?.history.back()}>
-           ←
+        <button className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="后退" onClick={() => iframeRef.current?.contentWindow?.history.back()}>
+           <ArrowLeft size={16}/>
         </button>
-        <button className="p-1.5 hover:bg-gray-200 rounded text-gray-600" onClick={() => iframeRef.current?.contentWindow?.history.forward()}>
-           →
+        <button className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="前进" onClick={() => iframeRef.current?.contentWindow?.history.forward()}>
+           <ArrowRight size={16}/>
+        </button>
+        <button className="p-1.5 hover:bg-gray-200 rounded text-gray-600 transition-colors" title="刷新" onClick={() => { const u = url; setUrl(''); setTimeout(() => setUrl(u), 10); }}>
+           <RotateCcw size={16}/>
         </button>
         <input 
-          className="flex-1 px-3 py-1.5 border border-gray-300 rounded text-sm focus:border-emerald-500 focus:outline-none"
+          className="flex-1 px-3 py-1.5 border border-gray-300 rounded text-sm focus:border-emerald-500 focus:outline-none transition-all"
           value={inputUrl}
           onChange={(e) => setInputUrl(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && go()}
           onFocus={(e) => e.target.select()}
         />
-        <button onClick={go} className="px-4 py-1.5 bg-emerald-600 text-white rounded text-sm hover:bg-emerald-700 shadow-sm">Go</button>
+        <button onClick={go} className="px-4 py-1.5 bg-emerald-600 text-white rounded text-sm hover:bg-emerald-700 shadow-sm transition-colors">前往</button>
       </div>
       <iframe 
         ref={iframeRef}
@@ -105,7 +111,7 @@ const CalculatorApp: React.FC = () => {
         setEquation('');
         setLastOp(true);
       } catch {
-        setDisplay('Error');
+        setDisplay('错误');
       }
     } else if (['+', '-', '*', '/'].includes(val)) {
       setEquation(equation + display + val);
@@ -154,9 +160,9 @@ const CalculatorApp: React.FC = () => {
 
 const MusicPlayerApp: React.FC = () => {
   const tracks = [
-    { title: 'Xi Ri Yin Xiang', url: 'https://www.imikufans.com/xryx.mp3' },
-    { title: 'Hitori', url: 'https://www.imikufans.com/hitori.mp3' },
-    { title: 'Chun Lai', url: 'https://www.imikufans.com/cl.mp3' },
+    { title: '昔日印象 (Xi Ri Yin Xiang)', url: 'https://www.imikufans.com/xryx.mp3' },
+    { title: '孤独摇滚 (Hitori)', url: 'https://www.imikufans.com/hitori.mp3' },
+    { title: '春来 (Chun Lai)', url: 'https://www.imikufans.com/cl.mp3' },
   ];
   const [currentTrack, setCurrentTrack] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -195,12 +201,17 @@ const MusicPlayerApp: React.FC = () => {
              <Music size={24} className="text-gray-900"/>
           </div>
         </div>
-        <h2 className="text-xl font-bold text-white mb-1 drop-shadow-md">{tracks[currentTrack].title}</h2>
-        <div className="text-sm text-emerald-400 font-medium">iMikufans Audio</div>
+        <h2 className="text-xl font-bold text-white mb-1 drop-shadow-md text-center">{tracks[currentTrack].title}</h2>
+        <div className="text-sm text-emerald-400 font-medium">iMikufans 音乐播放器</div>
       </div>
       
-      <div className="w-full bg-gray-700 h-1.5 rounded-full mb-6 overflow-hidden">
-        <div className="h-full bg-emerald-500 transition-all duration-300" style={{ width: `${progress}%` }}></div>
+      <div className="w-full bg-gray-700 h-1.5 rounded-full mb-6 overflow-hidden cursor-pointer" onClick={(e) => {
+        if(!audioRef.current) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const pct = (e.clientX - rect.left) / rect.width;
+        audioRef.current.currentTime = pct * audioRef.current.duration;
+      }}>
+        <div className="h-full bg-emerald-500 transition-all duration-100" style={{ width: `${progress}%` }}></div>
       </div>
 
       <div className="flex justify-center items-center gap-6 pb-2">
@@ -224,7 +235,7 @@ const MusicPlayerApp: React.FC = () => {
             className={`p-2 rounded cursor-pointer text-xs flex items-center gap-3 transition-colors ${i === currentTrack ? 'bg-emerald-500/20 text-emerald-300 font-bold' : 'hover:bg-white/5 text-gray-400'}`}
           >
              <span className="w-4 text-center">{i + 1}</span>
-             <span className="flex-1">{t.title}</span>
+             <span className="flex-1 truncate">{t.title}</span>
              {i === currentTrack && <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>}
           </div>
         ))}
@@ -307,7 +318,7 @@ const PaintApp: React.FC = () => {
         </div>
         <div className="flex-1" />
         <button onClick={download} className="flex items-center gap-1 px-3 py-1 bg-white hover:bg-gray-50 border rounded text-gray-700 text-sm shadow-sm transition-all active:scale-95">
-          <Download size={14} /> Save
+          <Download size={14} /> 保存图片
         </button>
       </div>
       <div className="flex-1 overflow-auto bg-gray-400 p-8 flex justify-center items-start shadow-inner">
@@ -318,14 +329,15 @@ const PaintApp: React.FC = () => {
 };
 
 const CodeEditorApp: React.FC = () => {
-  const defaultCode = `// Hello World in C#
+  const defaultCode = `// C# Hello World 示例
 using System;
 
 namespace ImikuApp {
     class Program {
         static void Main(string[] args) {
-            Console.WriteLine("Hello World!");
-            Console.WriteLine("Welcome to iMikufans OS");
+            // 输出欢迎信息
+            Console.WriteLine("你好，世界！");
+            Console.WriteLine("欢迎来到 iMikufans 虚拟终端");
         }
     }
 }`;
@@ -364,8 +376,8 @@ namespace ImikuApp {
         </div>
       </div>
       <div className="h-6 bg-[#007acc] text-white text-xs flex items-center px-2 justify-between">
-         <span>Ready</span>
-         <span>Ln {code.split('\n').length}, Col 1</span>
+         <span>就绪</span>
+         <span>行 {code.split('\n').length}, 列 1</span>
       </div>
     </div>
   );
@@ -383,12 +395,12 @@ const SettingsApp: React.FC = () => {
     <div className="p-8 bg-gray-50 h-full overflow-y-auto">
       <div className="max-w-2xl mx-auto">
         <h2 className="text-3xl font-light mb-8 border-b pb-4 flex items-center gap-3">
-          <Settings size={32} className="text-gray-600"/> Settings
+          <Settings size={32} className="text-gray-600"/> 系统设置
         </h2>
         
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
-          <h3 className="text-lg font-medium mb-4 text-gray-800">Personalization</h3>
-          <label className="block text-sm font-medium text-gray-600 mb-2">Desktop Background URL</label>
+          <h3 className="text-lg font-medium mb-4 text-gray-800">个性化</h3>
+          <label className="block text-sm font-medium text-gray-600 mb-2">桌面背景图片链接 (URL)</label>
           <div className="flex gap-3 mb-2">
             <input 
               type="text" 
@@ -396,28 +408,28 @@ const SettingsApp: React.FC = () => {
               onChange={(e) => setWp(e.target.value)}
               className="flex-1 border p-2 rounded focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
-            <button onClick={save} className="bg-emerald-600 text-white px-6 py-2 rounded font-medium hover:bg-emerald-700 transition-colors">Apply</button>
+            <button onClick={save} className="bg-emerald-600 text-white px-6 py-2 rounded font-medium hover:bg-emerald-700 transition-colors">应用</button>
           </div>
-          <p className="text-xs text-gray-400">Default: {WALLPAPER_DEFAULT}</p>
+          <p className="text-xs text-gray-400">默认壁纸: {WALLPAPER_DEFAULT}</p>
         </div>
         
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-           <h3 className="text-lg font-medium mb-4 text-gray-800">System Information</h3>
+           <h3 className="text-lg font-medium mb-4 text-gray-800">系统信息</h3>
            <div className="space-y-2 text-sm">
               <div className="flex justify-between border-b py-2">
-                <span className="text-gray-500">Operating System</span>
-                <span className="font-medium">iMikufans Virtual Terminal</span>
+                <span className="text-gray-500">操作系统</span>
+                <span className="font-medium">iMikufans Virtual Terminal (虚拟终端)</span>
               </div>
               <div className="flex justify-between border-b py-2">
-                <span className="text-gray-500">Kernel Version</span>
+                <span className="text-gray-500">内核版本</span>
                 <span className="font-medium">WebReact 19.2 (Stable)</span>
               </div>
               <div className="flex justify-between border-b py-2">
-                <span className="text-gray-500">Registered User</span>
+                <span className="text-gray-500">注册用户</span>
                 <span className="font-medium text-emerald-600">{USERNAME}</span>
               </div>
               <div className="flex justify-between pt-2">
-                <span className="text-gray-500">Web Engine</span>
+                <span className="text-gray-500">Web 引擎</span>
                 <span className="font-medium">Chromium/Gecko Shim</span>
               </div>
            </div>
@@ -432,12 +444,12 @@ const AppStoreApp: React.FC = () => {
   const [name, setName] = useState('');
   
   const presets = [
-    { name: 'Bilibili', url: 'https://www.bilibili.com' },
-    { name: 'Baidu', url: 'https://www.baidu.com' },
-    { name: 'Weibo', url: 'https://weibo.com' },
-    { name: 'Zhihu', url: 'https://www.zhihu.com' },
+    { name: '哔哩哔哩', url: 'https://www.bilibili.com' },
+    { name: '百度', url: 'https://www.baidu.com' },
+    { name: '微博', url: 'https://weibo.com' },
+    { name: '知乎', url: 'https://www.zhihu.com' },
     { name: 'GitHub', url: 'https://github.com' },
-    { name: 'Google', url: 'https://google.com' },
+    { name: '谷歌', url: 'https://google.com' },
   ];
 
   const install = (n: string, u: string) => {
@@ -445,35 +457,35 @@ const AppStoreApp: React.FC = () => {
     const installed = JSON.parse(localStorage.getItem('imiku_installed_apps') || '[]');
     installed.push({ id: `custom-${Date.now()}`, name: n, url: u });
     localStorage.setItem('imiku_installed_apps', JSON.stringify(installed));
-    alert(`${n} has been added to your desktop.`);
+    alert(`${n} 已成功添加到桌面。`);
     window.location.reload();
   };
 
   return (
     <div className="flex flex-col h-full bg-slate-50">
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white shadow-md">
-        <h1 className="text-2xl font-bold flex items-center gap-3"><ShoppingBag /> Software Manager</h1>
-        <p className="opacity-80 mt-1">Discover and install web applications</p>
+        <h1 className="text-2xl font-bold flex items-center gap-3"><ShoppingBag /> 应用商店</h1>
+        <p className="opacity-80 mt-1">发现并安装 Web 应用程序</p>
       </div>
       <div className="p-8 overflow-auto">
         <div className="bg-white p-6 rounded-xl shadow-sm border mb-8">
-          <h3 className="font-bold text-lg mb-4 text-gray-800 flex items-center gap-2"><Download size={20}/> Custom Installation</h3>
+          <h3 className="font-bold text-lg mb-4 text-gray-800 flex items-center gap-2"><Download size={20}/> 自定义安装</h3>
           <div className="flex gap-4 mb-4">
             <div className="flex-1 space-y-1">
-               <label className="text-xs font-bold text-gray-500 uppercase">App Name</label>
-               <input placeholder="e.g. My Site" className="border p-2 rounded w-full focus:ring-2 ring-emerald-500 outline-none" value={name} onChange={e => setName(e.target.value)} />
+               <label className="text-xs font-bold text-gray-500 uppercase">应用名称</label>
+               <input placeholder="例如: 我的网站" className="border p-2 rounded w-full focus:ring-2 ring-emerald-500 outline-none" value={name} onChange={e => setName(e.target.value)} />
             </div>
             <div className="flex-[2] space-y-1">
-               <label className="text-xs font-bold text-gray-500 uppercase">Web Address</label>
+               <label className="text-xs font-bold text-gray-500 uppercase">网址 (URL)</label>
                <input placeholder="https://..." className="border p-2 rounded w-full focus:ring-2 ring-emerald-500 outline-none" value={url} onChange={e => setUrl(e.target.value)} />
             </div>
           </div>
           <button onClick={() => install(name, url)} className="bg-blue-600 text-white px-6 py-2 rounded font-medium hover:bg-blue-700 transition-colors shadow-sm">
-            Generate Desktop Shortcut
+            生成桌面快捷方式
           </button>
         </div>
 
-        <h3 className="font-bold text-lg mb-4 text-gray-800">Featured Web Apps</h3>
+        <h3 className="font-bold text-lg mb-4 text-gray-800">推荐应用</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {presets.map(p => (
             <div key={p.name} className="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-all group flex flex-col items-center">
@@ -481,7 +493,7 @@ const AppStoreApp: React.FC = () => {
                 <Globe size={28} />
               </div>
               <div className="text-center font-bold text-gray-800 mb-3">{p.name}</div>
-              <button onClick={() => install(p.name, p.url)} className="w-full bg-gray-100 text-gray-700 py-1.5 rounded-md hover:bg-emerald-500 hover:text-white text-sm font-medium transition-colors">Install</button>
+              <button onClick={() => install(p.name, p.url)} className="w-full bg-gray-100 text-gray-700 py-1.5 rounded-md hover:bg-emerald-500 hover:text-white text-sm font-medium transition-colors">安装</button>
             </div>
           ))}
         </div>
@@ -499,23 +511,23 @@ const FileManagerApp: React.FC = () => {
            <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
            <div className="w-3 h-3 rounded-full bg-green-400"></div>
         </div>
-        <button className="px-3 py-1 hover:bg-gray-200 rounded text-gray-700">File</button>
-        <button className="px-3 py-1 hover:bg-gray-200 rounded text-gray-700">Edit</button>
-        <button className="px-3 py-1 hover:bg-gray-200 rounded text-gray-700">View</button>
+        <button className="px-3 py-1 hover:bg-gray-200 rounded text-gray-700">文件</button>
+        <button className="px-3 py-1 hover:bg-gray-200 rounded text-gray-700">编辑</button>
+        <button className="px-3 py-1 hover:bg-gray-200 rounded text-gray-700">查看</button>
         <div className="flex-1"></div>
         <div className="flex items-center gap-2 px-2 bg-white border rounded">
            <Search size={14} className="text-gray-400"/>
-           <span className="text-gray-400">Search</span>
+           <span className="text-gray-400">搜索</span>
         </div>
       </div>
       <div className="flex flex-1 overflow-hidden">
         <div className="w-48 bg-gray-50 border-r p-3 text-sm space-y-1">
-           <div className="flex items-center gap-2 px-2 py-1.5 bg-blue-100 text-blue-700 rounded font-medium"><Folder size={16}/> Home</div>
-           <div className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-200 rounded text-gray-700 ml-2 cursor-pointer"><Monitor size={16}/> Desktop</div>
-           <div className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-200 rounded text-gray-700 ml-2 cursor-pointer"><FileText size={16}/> Documents</div>
-           <div className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-200 rounded text-gray-700 ml-2 cursor-pointer"><Download size={16}/> Downloads</div>
+           <div className="flex items-center gap-2 px-2 py-1.5 bg-blue-100 text-blue-700 rounded font-medium"><Folder size={16}/> 主目录</div>
+           <div className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-200 rounded text-gray-700 ml-2 cursor-pointer"><Monitor size={16}/> 桌面</div>
+           <div className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-200 rounded text-gray-700 ml-2 cursor-pointer"><FileText size={16}/> 文档</div>
+           <div className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-200 rounded text-gray-700 ml-2 cursor-pointer"><Download size={16}/> 下载</div>
            <div className="mt-4 pt-4 border-t border-gray-200">
-             <div className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-200 rounded text-gray-700 cursor-pointer"><Trash2 size={16}/> Trash</div>
+             <div className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-200 rounded text-gray-700 cursor-pointer"><Trash2 size={16}/> 回收站</div>
            </div>
         </div>
         <div className="flex-1 flex flex-col">
@@ -531,7 +543,7 @@ const FileManagerApp: React.FC = () => {
            </div>
            
            <div className="h-8 border-t bg-gray-50 flex items-center px-4 text-xs text-gray-500">
-              1 item selected, 2.4 KB
+              选中 1 项, 2.4 KB
            </div>
         </div>
       </div>
@@ -540,13 +552,13 @@ const FileManagerApp: React.FC = () => {
 };
 
 const NotepadApp: React.FC = () => {
-  const [text, setText] = useState('Welcome to iMikufans Virtual Terminal.\n\nType your notes here...');
+  const [text, setText] = useState('欢迎使用 iMikufans 虚拟终端。\n\n在此输入您的笔记...');
   return (
     <div className="flex flex-col h-full bg-white">
       <div className="border-b p-1 text-sm flex gap-1 bg-gray-50">
-        <button className="hover:bg-gray-200 px-3 py-1 rounded">File</button>
-        <button className="hover:bg-gray-200 px-3 py-1 rounded">Edit</button>
-        <button className="hover:bg-gray-200 px-3 py-1 rounded">Format</button>
+        <button className="hover:bg-gray-200 px-3 py-1 rounded">文件</button>
+        <button className="hover:bg-gray-200 px-3 py-1 rounded">编辑</button>
+        <button className="hover:bg-gray-200 px-3 py-1 rounded">格式</button>
       </div>
       <textarea 
         className="flex-1 p-4 focus:outline-none resize-none font-mono text-sm leading-relaxed"
@@ -564,25 +576,24 @@ const NotepadApp: React.FC = () => {
 // --- App Registry ---
 // Defined outside OS to prevent recreation
 const APP_REGISTRY: Record<string, AppDefinition> = {
-  browser: { id: 'browser', name: 'Web Browser', icon: Globe, component: BrowserApp, defaultWidth: 900, defaultHeight: 650 },
-  calc: { id: 'calc', name: 'Calculator', icon: Grid, component: CalculatorApp, defaultWidth: 320, defaultHeight: 450 },
-  music: { id: 'music', name: 'Music Player', icon: Disc, component: MusicPlayerApp, defaultWidth: 400, defaultHeight: 550 },
-  notepad: { id: 'notepad', name: 'Text Editor', icon: Edit3, component: NotepadApp },
-  paint: { id: 'paint', name: 'Drawing Board', icon: ImageIcon, component: PaintApp, defaultWidth: 850, defaultHeight: 650 },
-  code: { id: 'code', name: 'Code Editor', icon: Code, component: CodeEditorApp, defaultWidth: 800, defaultHeight: 600 },
-  settings: { id: 'settings', name: 'Settings', icon: Settings, component: SettingsApp },
-  store: { id: 'store', name: 'App Store', icon: ShoppingBag, component: AppStoreApp, defaultWidth: 900, defaultHeight: 700 },
-  files: { id: 'files', name: 'Files', icon: Folder, component: FileManagerApp },
+  browser: { id: 'browser', name: '浏览器', icon: Globe, component: BrowserApp, defaultWidth: 900, defaultHeight: 650 },
+  calc: { id: 'calc', name: '计算器', icon: Grid, component: CalculatorApp, defaultWidth: 320, defaultHeight: 450 },
+  music: { id: 'music', name: '音乐播放器', icon: Disc, component: MusicPlayerApp, defaultWidth: 400, defaultHeight: 550 },
+  notepad: { id: 'notepad', name: '记事本', icon: Edit3, component: NotepadApp },
+  paint: { id: 'paint', name: '画板', icon: ImageIcon, component: PaintApp, defaultWidth: 850, defaultHeight: 650 },
+  code: { id: 'code', name: '代码编辑器', icon: Code, component: CodeEditorApp, defaultWidth: 800, defaultHeight: 600 },
+  settings: { id: 'settings', name: '系统设置', icon: Settings, component: SettingsApp },
+  store: { id: 'store', name: '应用商店', icon: ShoppingBag, component: AppStoreApp, defaultWidth: 900, defaultHeight: 700 },
+  files: { id: 'files', name: '文件管理', icon: Folder, component: FileManagerApp },
   // Links
-  email: { id: 'email', name: 'Mail', icon: Mail, component: () => null, url: 'https://outlook.live.com' },
-  home: { id: 'home', name: 'iMikufans Home', icon: Smile, component: () => null, url: 'https://www.imikufans.com' },
-  blog: { id: 'blog', name: 'Blog', icon: FileText, component: () => null, url: 'https://blog.imikufans.com/' },
-  emoji: { id: 'emoji', name: 'Emoji Gen', icon: Smile, component: () => null, url: 'https://pjsk.imikufans.com/' },
-  about: { id: 'about', name: 'About Author', icon: User, component: () => null, url: 'https://blogx.imikufans.com/about/' },
+  email: { id: 'email', name: '邮箱', icon: Mail, component: () => null, url: 'https://outlook.live.com' },
+  home: { id: 'home', name: 'iMikufans 主页', icon: Smile, component: () => null, url: 'https://www.imikufans.com' },
+  blog: { id: 'blog', name: '博客', icon: FileText, component: () => null, url: 'https://blog.imikufans.com/' },
+  emoji: { id: 'emoji', name: '表情生成', icon: Smile, component: () => null, url: 'https://pjsk.imikufans.com/' },
+  about: { id: 'about', name: '关于作者', icon: User, component: () => null, url: 'https://blogx.imikufans.com/about/' },
 };
 
 // --- Window Frame Component ---
-// Extracted to Top Level to fix dragging state issues
 
 interface WindowFrameProps {
   win: AppWindow;
@@ -636,7 +647,7 @@ const WindowFrame = React.memo(({ win, isActive, onFocus, onClose, onMinimize, o
 
   return (
     <div 
-      className={`absolute flex flex-col shadow-2xl overflow-hidden bg-white transition-all duration-75
+      className={`absolute flex flex-col shadow-2xl overflow-hidden bg-white transition-all duration-75 pointer-events-auto
         ${win.state === 'maximized' ? 'inset-0 !top-0 !left-0 !w-full !h-[calc(100%-48px)] rounded-none' : 'rounded-lg border border-gray-600/30'}`}
       style={{
         left: win.state === 'normal' ? win.x : 0,
@@ -675,11 +686,65 @@ const WindowFrame = React.memo(({ win, isActive, onFocus, onClose, onMinimize, o
   );
 });
 
+// --- Context Menu Component ---
+interface ContextMenuProps {
+  x: number;
+  y: number;
+  onClose: () => void;
+  onRefresh: () => void;
+  onChangeWallpaper: () => void;
+  onAbout: () => void;
+  onCreateFolder: () => void;
+}
+
+const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose, onRefresh, onChangeWallpaper, onAbout, onCreateFolder }) => {
+  useEffect(() => {
+    const close = () => onClose();
+    window.addEventListener('click', close);
+    // Also close on right click elsewhere
+    window.addEventListener('contextmenu', close);
+    return () => {
+        window.removeEventListener('click', close);
+        window.removeEventListener('contextmenu', close);
+    };
+  }, [onClose]);
+
+  return (
+    <div 
+      className="absolute bg-[#2d2d2d] border border-gray-600 rounded-md shadow-2xl py-1 w-52 z-[9999] text-gray-200"
+      style={{ left: Math.min(x, window.innerWidth - 220), top: Math.min(y, window.innerHeight - 300) }}
+      onClick={(e) => e.stopPropagation()}
+      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
+    >
+       <div onClick={() => { onCreateFolder(); onClose(); }} className="px-4 py-2 hover:bg-emerald-600 hover:text-white text-sm cursor-pointer flex items-center gap-2">
+         <Folder size={16} /> 新建文件夹
+      </div>
+      <div className="h-px bg-gray-600 my-1 mx-2"></div>
+      <div onClick={() => { onRefresh(); onClose(); }} className="px-4 py-2 hover:bg-emerald-600 hover:text-white text-sm cursor-pointer flex items-center gap-2">
+         <RefreshCw size={16} /> 刷新桌面
+      </div>
+      <div onClick={() => { onChangeWallpaper(); onClose(); }} className="px-4 py-2 hover:bg-emerald-600 hover:text-white text-sm cursor-pointer flex items-center gap-2">
+         <ImageIcon size={16} /> 更换壁纸
+      </div>
+      <div onClick={() => { 
+        if(document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+        onClose();
+      }} className="px-4 py-2 hover:bg-emerald-600 hover:text-white text-sm cursor-pointer flex items-center gap-2">
+         <Maximize2 size={16} /> {document.fullscreenElement ? '退出全屏' : '全屏模式'}
+      </div>
+      <div className="h-px bg-gray-600 my-1 mx-2"></div>
+      <div onClick={() => { onAbout(); onClose(); }} className="px-4 py-2 hover:bg-emerald-600 hover:text-white text-sm cursor-pointer flex items-center gap-2">
+         <Info size={16} /> 关于系统
+      </div>
+    </div>
+  );
+};
+
 // --- Main OS Component ---
 
 const OS = () => {
   const [bootStep, setBootStep] = useState(0); // 0:Off, 1:Logo, 2:Login, 3:Desktop
-  const [password, setPassword] = useState('');
   
   const [windows, setWindows] = useState<AppWindow[]>([]);
   const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
@@ -687,6 +752,8 @@ const OS = () => {
   const [wallpaper, setWallpaper] = useState(WALLPAPER_DEFAULT);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
+  
+  const [contextMenu, setContextMenu] = useState<{show: boolean, x: number, y: number} | null>(null);
 
   useEffect(() => {
     const storedWp = localStorage.getItem('imiku_wallpaper');
@@ -697,6 +764,15 @@ const OS = () => {
     const t2 = setTimeout(() => setBootStep(2), 3500); 
     
     return () => { clearTimeout(t1); clearTimeout(t2); }
+  }, []);
+
+  // Prevent default context menu globally to mimic OS feel
+  useEffect(() => {
+    const handleGlobalContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('contextmenu', handleGlobalContextMenu);
+    return () => window.removeEventListener('contextmenu', handleGlobalContextMenu);
   }, []);
 
   // Stable callbacks for WindowFrame
@@ -762,8 +838,19 @@ const OS = () => {
     }
   };
 
-  const handleClickIcon = (id: string) => {
-    setSelectedIconId(id);
+  const handleDesktopContextMenu = (e: React.MouseEvent) => {
+    // Only show custom context menu if clicking on background or icons
+    e.preventDefault();
+    setContextMenu({ show: true, x: e.clientX, y: e.clientY });
+  };
+
+  const refreshDesktop = () => {
+    // Simulate refresh
+    const temp = wallpaper;
+    setWallpaper('');
+    setTimeout(() => setWallpaper(temp), 50);
+    setWindows([]);
+    setSelectedIconId(null);
   };
 
   // --- Boot Screen ---
@@ -793,27 +880,18 @@ const OS = () => {
       >
         <div className="absolute inset-0 bg-black/40 backdrop-blur-md"></div>
         <div className="z-10 flex flex-col items-center animate-in fade-in zoom-in duration-500">
-          <div className="p-1 bg-gradient-to-br from-emerald-400 to-blue-500 rounded-full mb-6 shadow-xl">
-             <img src={BOOT_LOGO} alt="User" className="w-28 h-28 rounded-full border-4 border-gray-900 object-cover" />
+          <div className="p-1 bg-gradient-to-br from-emerald-400 to-blue-500 rounded-full mb-6 shadow-xl cursor-pointer hover:scale-105 transition-transform" onClick={() => setBootStep(3)}>
+             <img src={BOOT_LOGO} alt="User" className="w-32 h-32 rounded-full border-4 border-gray-900 object-cover" />
           </div>
-          <h2 className="text-3xl font-light text-white mb-8 tracking-wide text-shadow">{USERNAME}</h2>
-          <div className="flex flex-col gap-3 w-64">
-             <input 
-               type="password" 
-               placeholder="Password"
-               className="w-full p-2.5 rounded-md bg-gray-900/60 border border-gray-600 text-white placeholder-gray-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none transition-all text-center"
-               value={password}
-               onChange={(e) => setPassword(e.target.value)}
-               onKeyDown={(e) => e.key === 'Enter' && setBootStep(3)}
-               autoFocus
-             />
-             <button 
-               onClick={() => setBootStep(3)}
-               className="w-full bg-emerald-600 hover:bg-emerald-500 text-white p-2.5 rounded-md font-medium transition-colors shadow-lg"
-             >
-               Log In
-             </button>
-          </div>
+          <h2 className="text-3xl font-light text-white mb-2 tracking-wide text-shadow">{USERNAME}</h2>
+          <p className="text-gray-300 mb-8 text-sm">iMikufans Virtual Terminal</p>
+          
+          <button 
+            onClick={() => setBootStep(3)}
+            className="px-10 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-emerald-500/30 flex items-center gap-2 group"
+          >
+            <span>点击登录</span> <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform"/>
+          </button>
         </div>
       </div>
     );
@@ -823,7 +901,8 @@ const OS = () => {
   return (
     <div 
       className="h-full w-full overflow-hidden relative select-none crt font-sans"
-      onClick={() => { setStartOpen(false); setSelectedIconId(null); }}
+      onClick={() => { setStartOpen(false); setSelectedIconId(null); setContextMenu(null); }}
+      onContextMenu={handleDesktopContextMenu}
     >
       {/* Wallpaper */}
       <div 
@@ -831,15 +910,32 @@ const OS = () => {
         style={{ backgroundImage: `url(${wallpaper})` }}
       />
       
-      {/* Desktop Icons */}
-      <div className="absolute inset-0 z-0 p-4 flex flex-col flex-wrap content-start gap-4 h-[calc(100%-48px)] w-full">
+      {/* Desktop Icons Container - Z-Index 5 */}
+      {/* IMPORTANT: pointer-events-none on container so clicks go to wallpaper context menu logic if not on icon */}
+      <div 
+        className="absolute inset-0 z-[5] p-4 flex flex-col flex-wrap content-start gap-4 h-[calc(100%-48px)] w-full pointer-events-none"
+      >
+        {/* Helper function to render icon */}
         {['home', 'store', 'files', 'browser', 'music', 'calc', 'paint', 'email', 'notepad', 'code', 'settings'].map(id => (
           <div 
             key={id}
-            onClick={(e) => { e.stopPropagation(); handleClickIcon(id); }}
-            onDoubleClick={(e) => { e.stopPropagation(); openApp(id); }}
-            className={`w-24 h-28 flex flex-col items-center justify-center gap-2 rounded border border-transparent transition-all group
+            // Enable pointer events for icons specifically so they can be clicked
+            className={`w-24 h-28 flex flex-col items-center justify-center gap-2 rounded border border-transparent transition-all group pointer-events-auto
                ${selectedIconId === id ? 'bg-emerald-500/30 border-emerald-400/50 backdrop-blur-sm' : 'hover:bg-white/10'}`}
+            onClick={(e) => { 
+                e.stopPropagation(); 
+                e.preventDefault();
+                setSelectedIconId(id); 
+            }}
+            onDoubleClick={(e) => { 
+                e.stopPropagation(); 
+                e.preventDefault();
+                openApp(id); 
+            }}
+            onContextMenu={(e) => {
+                 // Allow right click to pass through to desktop handler, but select icon first
+                 setSelectedIconId(id);
+            }}
           >
             {React.createElement(APP_REGISTRY[id].icon, { 
               size: 42, 
@@ -855,10 +951,18 @@ const OS = () => {
         {JSON.parse(localStorage.getItem('imiku_installed_apps') || '[]').map((app: any) => (
            <div 
              key={app.id}
-             onClick={(e) => { e.stopPropagation(); handleClickIcon(app.id); }}
-             onDoubleClick={(e) => { e.stopPropagation(); window.open(app.url, '_blank'); }}
-             className={`w-24 h-28 flex flex-col items-center justify-center gap-2 rounded border border-transparent transition-all group
+             className={`w-24 h-28 flex flex-col items-center justify-center gap-2 rounded border border-transparent transition-all group pointer-events-auto
                 ${selectedIconId === app.id ? 'bg-emerald-500/30 border-emerald-400/50 backdrop-blur-sm' : 'hover:bg-white/10'}`}
+             onClick={(e) => { 
+                e.stopPropagation(); 
+                e.preventDefault();
+                setSelectedIconId(app.id); 
+            }}
+             onDoubleClick={(e) => { 
+                e.stopPropagation(); 
+                e.preventDefault();
+                window.open(app.url, '_blank'); 
+            }}
            >
              <Globe size={42} className="drop-shadow-xl text-emerald-300 group-hover:scale-105 transition-transform" />
              <span className={`text-xs text-center font-medium text-white px-1 rounded line-clamp-2 leading-tight drop-shadow-md
@@ -869,9 +973,9 @@ const OS = () => {
         ))}
       </div>
 
-      {/* Windows Layer */}
+      {/* Windows Layer - Z-Index 10 */}
+      {/* IMPORTANT: Container is pointer-events-none to let clicks pass to icons/wallpaper */}
       <div className="absolute inset-0 z-10 pointer-events-none">
-        <div className="w-full h-full pointer-events-auto">
            {windows.map(win => (
              <WindowFrame 
                key={win.id} 
@@ -884,8 +988,20 @@ const OS = () => {
                onMove={moveWindow}
              />
            ))}
-        </div>
       </div>
+      
+      {/* Context Menu - Z-Index 9999 */}
+      {contextMenu?.show && (
+        <ContextMenu 
+            x={contextMenu.x} 
+            y={contextMenu.y} 
+            onClose={() => setContextMenu(null)}
+            onRefresh={refreshDesktop}
+            onChangeWallpaper={() => openApp('settings')}
+            onAbout={() => openApp('about')}
+            onCreateFolder={() => alert('暂未实现文件系统写入功能。')}
+        />
+      )}
 
       {/* Start Menu */}
       {startOpen && (
@@ -896,22 +1012,22 @@ const OS = () => {
            {/* Header */}
            <div className="h-14 flex items-center px-4 bg-[#202020] rounded-tr-lg">
              <div className="bg-gray-700 p-1.5 rounded-full mr-3"><Search size={16} className="text-gray-400" /></div>
-             <input className="bg-transparent border-none focus:outline-none text-white text-sm w-full placeholder-gray-500" placeholder="Type to search..." autoFocus />
+             <input className="bg-transparent border-none focus:outline-none text-white text-sm w-full placeholder-gray-500" placeholder="搜索应用..." autoFocus />
            </div>
            
            <div className="flex-1 flex overflow-hidden">
              {/* Sidebar */}
              <div className="w-16 flex flex-col items-center py-4 gap-2 bg-[#202020]">
-                <button className="p-3 hover:bg-emerald-600 rounded-md transition-colors" title="Favorites"><StarIcon /></button>
-                <button className="p-3 hover:bg-emerald-600 rounded-md transition-colors" title="Internet"><Globe size={20}/></button>
-                <button className="p-3 hover:bg-emerald-600 rounded-md transition-colors" title="Store"><ShoppingBag size={20}/></button>
+                <button className="p-3 hover:bg-emerald-600 rounded-md transition-colors" title="收藏"><StarIcon /></button>
+                <button className="p-3 hover:bg-emerald-600 rounded-md transition-colors" title="网络"><Globe size={20}/></button>
+                <button className="p-3 hover:bg-emerald-600 rounded-md transition-colors" title="商店"><ShoppingBag size={20}/></button>
                 <div className="flex-1"></div>
-                <button onClick={() => openApp('settings')} className="p-3 hover:bg-emerald-600 rounded-md transition-colors" title="Settings"><Settings size={20}/></button>
+                <button onClick={() => openApp('settings')} className="p-3 hover:bg-emerald-600 rounded-md transition-colors" title="设置"><Settings size={20}/></button>
              </div>
              
              {/* App List */}
              <div className="flex-1 p-2 overflow-y-auto bg-[#2d2d2d] scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
-               <div className="text-xs font-bold text-gray-500 uppercase my-2 px-3">All Applications</div>
+               <div className="text-xs font-bold text-gray-500 uppercase my-2 px-3">所有应用</div>
                <div className="space-y-0.5">
                  {Object.values(APP_REGISTRY).map(app => (
                    <div 
@@ -922,7 +1038,7 @@ const OS = () => {
                      {React.createElement(app.icon, { size: 20, className: "text-gray-400 group-hover:text-white" })}
                      <div className="flex flex-col">
                        <span className="text-sm font-medium text-gray-300 group-hover:text-white">{app.name}</span>
-                       <span className="text-[10px] text-gray-500 group-hover:text-emerald-200">{app.url ? 'Web Link' : 'Application'}</span>
+                       <span className="text-[10px] text-gray-500 group-hover:text-emerald-200">{app.url ? '网站链接' : '应用程序'}</span>
                      </div>
                    </div>
                  ))}
@@ -937,10 +1053,10 @@ const OS = () => {
                  <span className="font-bold text-sm text-gray-200">{USERNAME}</span>
               </div>
               <div className="flex gap-1">
-                 <button className="p-2 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors" title="Lock Screen" onClick={() => setBootStep(2)}><User size={18}/></button>
-                 <button className="p-2 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors" title="Log Out" onClick={() => setBootStep(2)}><LogOut size={18}/></button>
+                 <button className="p-2 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors" title="锁定" onClick={() => setBootStep(2)}><User size={18}/></button>
+                 <button className="p-2 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors" title="注销" onClick={() => setBootStep(2)}><LogOut size={18}/></button>
                  <div className="w-px h-8 bg-gray-700 mx-1 self-center"></div>
-                 <button onClick={() => setBootStep(0)} className="p-2 hover:bg-red-600 rounded text-gray-400 hover:text-white transition-colors" title="Shut Down"><Power size={18}/></button>
+                 <button onClick={() => setBootStep(0)} className="p-2 hover:bg-red-600 rounded text-gray-400 hover:text-white transition-colors" title="关机"><Power size={18}/></button>
               </div>
            </div>
         </div>
@@ -950,6 +1066,7 @@ const OS = () => {
       <div 
         className="absolute bottom-0 left-0 right-0 h-12 bg-[#1a1a1a] border-t border-gray-700/50 z-50 flex items-center px-1 gap-1 text-gray-300 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.3)]"
         onClick={(e) => e.stopPropagation()}
+        onContextMenu={(e) => e.preventDefault()}
       >
         {/* Start Button */}
         <button 
@@ -957,7 +1074,7 @@ const OS = () => {
           className={`flex items-center gap-2 px-3 py-1.5 mx-1 rounded hover:bg-white/10 transition-colors group ${startOpen ? 'bg-white/10 text-emerald-400' : ''}`}
         >
           <img src={BOOT_LOGO} className="w-6 h-6 rounded-full group-hover:grayscale-0 transition-all grayscale" />
-          <span className="font-bold text-sm hidden md:block">Menu</span>
+          <span className="font-bold text-sm hidden md:block">开始</span>
         </button>
 
         {/* Separator */}
@@ -965,10 +1082,10 @@ const OS = () => {
 
         {/* Quick Launch & Windows */}
         <div className="flex-1 flex items-center gap-1 overflow-x-auto no-scrollbar mask-image-right">
-          <button onClick={() => openApp('browser')} className="p-2 hover:bg-white/10 rounded group relative">
+          <button onClick={() => openApp('browser')} className="p-2 hover:bg-white/10 rounded group relative" title="浏览器">
             <Globe size={20} className="text-blue-400 group-hover:scale-110 transition-transform"/>
           </button>
-          <button onClick={() => openApp('files')} className="p-2 hover:bg-white/10 rounded group relative">
+          <button onClick={() => openApp('files')} className="p-2 hover:bg-white/10 rounded group relative" title="文件管理">
             <Folder size={20} className="text-yellow-400 group-hover:scale-110 transition-transform"/>
           </button>
           
@@ -995,7 +1112,7 @@ const OS = () => {
             <Cpu size={14} className="text-emerald-500 mr-2" />
             <input 
                 className="bg-transparent border-none text-xs text-white focus:outline-none w-full placeholder-gray-500" 
-                placeholder="Ask AI..."
+                placeholder="AI 搜索..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleAiSearch}
